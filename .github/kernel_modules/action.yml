@@ -356,8 +356,14 @@ runs:
 
         echo "Building kernel modules and dtbs..."
         make "${MAKE_FLAGS[@]}" O=$OUT olddefconfig
-        make -j$(nproc --all) "${MAKE_FLAGS[@]}" O="$OUT" modules dtbs
-        make -j$(nproc --all) "${MAKE_FLAGS[@]}" O="$OUT" INSTALL_MOD_STRIP=1 INSTALL_MOD_PATH="$INSTALL_MOD_PATH" modules_install
+
+        if [[ "$BUILD_TYPE" == "Mixed Build" || "$BUILD_TYPE" == "Modules Only" ]]; then
+          make -j$(nproc --all) "${MAKE_FLAGS[@]}" O="$OUT" modules dtbs
+          make -j$(nproc --all) "${MAKE_FLAGS[@]}" O="$OUT" INSTALL_MOD_STRIP=1 INSTALL_MOD_PATH="$INSTALL_MOD_PATH" modules_install
+        else
+          make -j$(nproc --all) "${MAKE_FLAGS[@]}" O="$OUT" dtbs
+        fi
+        
         make -j$(nproc --all) "${MAKE_FLAGS[@]}" O="$OUT" INSTALL_DTBS_PATH="$INSTALL_DTBS_PATH" DTB_TYPES="$DTB_TYPES" dtbs_install
 
         echo "duration=$SECONDS" >> "$GITHUB_ENV"
