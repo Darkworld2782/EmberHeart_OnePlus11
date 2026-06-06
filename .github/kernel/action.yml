@@ -190,6 +190,24 @@ runs:
         rm -f msm-kernel/android/abi_gki_protected_exports_* || true
         df -h
 
+    - name: Merge vendor fragments
+      if: ${{ env.BUILD_TYPE == 'Monolithic Build' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        OUT=out
+
+        cd "$MSM"
+
+        make ARCH=arm64 mrproper
+        mkdir -p "$OUT"
+
+        # Merge defconfig fragments from vendor/$SOC_GKI.config
+        ./scripts/kconfig/merge_config.sh -O "$OUT" -m arch/arm64/configs/gki_defconfig arch/arm64/configs/vendor/${SOC}_GKI.config
+
+        cp "$OUT/.config" arch/arm64/configs/gki_defconfig
+        rm "$OUT/.config"
+
     - name: Add KernelSU Next
       id: add_ksun
       shell: bash

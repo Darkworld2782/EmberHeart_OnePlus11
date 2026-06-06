@@ -170,6 +170,7 @@ runs:
         df -h
 
     - name: Merge vendor fragments
+      if: ${{ env.BUILD_TYPE == 'Modules Only' || env.BUILD_TYPE == 'Mixed Build' }}
       shell: bash
       run: |
         set -euo pipefail
