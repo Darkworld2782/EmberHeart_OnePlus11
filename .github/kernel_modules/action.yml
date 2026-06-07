@@ -408,6 +408,12 @@ runs:
         export TARGET_BOARD_PLATFORM=kalama
         export ROOT_DIR=$KERNEL_PLATFORM
 
+        # LOS sources expect out to be inside kernel_platform so we set out_dir as . 
+        # because our actual out dir is inside common directory
+        if [[ "$BUILD_TYPE" == "Monolithic Build" ]]; then
+          export OUT_DIR=.
+        fi
+
         if [[ "$BUILD_TYPE" == "Mixed Build" || "$BUILD_TYPE" == "Modules Only" ]]; then
           export KERNEL_DIR=msm-kernel
         else
@@ -489,7 +495,10 @@ runs:
 
             make -C "$MODULE" M="../$MODULE" -j$(nproc --all) "${MAKE_FLAGS[@]}" O=$MSM/out "${OPLUS_FLAGS[@]}"
             make -C "$MODULE" M="../$MODULE" -j$(nproc --all) "${MAKE_FLAGS[@]}" O=$MSM/out "${OPLUS_FLAGS[@]}" INSTALL_MOD_STRIP=1 INSTALL_MOD_PATH="$INSTALL_MOD_PATH" modules_install
-            export KBUILD_EXTRA_SYMBOLS=$(find "$KERNEL_PLATFORM/vendor" -name "Module.symvers" | tr '\n' ' ')
+            
+            if [[ "$BUILD_TYPE" == "Mixed Build" || "$BUILD_TYPE" == "Modules Only" ]]; then
+              export KBUILD_EXTRA_SYMBOLS=$(find "$KERNEL_PLATFORM/vendor" -name "Module.symvers" | tr '\n' ' ')
+            fi
         done
 
         echo "duration_qcom_ext=$SECONDS" >> "$GITHUB_ENV"
