@@ -304,7 +304,12 @@ runs:
         cd "$MSM"
 
         export PATH="${CLANG_BIN_PATH}:$PATH"
-        export PATH="$KERNEL_PLATFORM/build/build-tools/path/linux-x86:$PATH"
+
+        if [ -d "$KERNEL_PLATFORM/build/build-tools/path" ]; then
+          export PATH="$KERNEL_PLATFORM/build/build-tools/path/linux-x86:$PATH"
+        else
+          export PATH="$KERNEL_PLATFORM/prebuilts/kernel-build-tools/linux-x86/bin:$PATH"
+        fi
 
         if [ "${{ inputs.optimize_level }}" = "O3" ]; then
           KCFLAGS_EXTRA="-O3"
@@ -333,7 +338,19 @@ runs:
           OBJCOPY=llvm-objcopy
           OBJDUMP=llvm-objdump
           DEPMOD=depmod
-          DTC="$KERNEL_PLATFORM/build/kernel/build-tools/path/linux-x86/dtc"
+          )
+
+        if [ -d "$KERNEL_PLATFORM/build/build-tools/path" ]; then
+          MAKE_FLAGS+=(
+            DTC="$KERNEL_PLATFORM/build/kernel/build-tools/path/linux-x86/dtc"
+          )
+        else
+          MAKE_FLAGS+=(
+            DTC="$KERNEL_PLATFORM/prebuilts/kernel-build-tools/linux-x86/bin/dtc"
+          )
+        fi
+          
+        MAKE_FLAGS+=(
           DTC_FLAGS="-@"
           STRIP=llvm-strip
           HOSTCC="ccache clang"
@@ -518,7 +535,11 @@ runs:
         # After depmod delete this dir since ramdisk is flattened
         DEPMOD_DIR_ROOT="$VENDOR_BOOT_STAGING_DIR/ramdisk/lib/modules/$UNAME"
 
-        export PATH="$KERNEL_PLATFORM/build/build-tools/path/linux-x86:$PATH"
+        if [ -d "$KERNEL_PLATFORM/build/build-tools/path" ]; then
+          export PATH="$KERNEL_PLATFORM/build/build-tools/path/linux-x86:$PATH"
+        else
+          export PATH="$KERNEL_PLATFORM/prebuilts/kernel-build-tools/linux-x86/bin:$PATH"
+        fi
 
         # Create folder of highest depth amongst all
         mkdir -p "$DEPMOD_DIR_ROOT"
@@ -626,7 +647,11 @@ runs:
         # After depmod delete this dir since vendor_dlkm is flattened
         DEPMOD_DIR_ROOT="$DLKM_STAGING_DIR/lib/modules/$UNAME"
 
-        export PATH="$KERNEL_PLATFORM/build/build-tools/path/linux-x86:$PATH"
+        if [ -d "$KERNEL_PLATFORM/build/build-tools/path" ]; then
+          export PATH="$KERNEL_PLATFORM/build/build-tools/path/linux-x86:$PATH"
+        else
+          export PATH="$KERNEL_PLATFORM/prebuilts/kernel-build-tools/linux-x86/bin:$PATH"
+        fi
 
         # Create folder of highest depth amongst all
         mkdir -p "$DEPMOD_DIR_ROOT"
