@@ -1,7 +1,7 @@
 {
   "model": "OP11_LOS",
   "soc": "kalama",
-  "branch": "oneplus/sm8550",
+  "branch": "los/sm8550",
   "boot_partition_size": "201326592",
   "vendor_boot_partition_size": "201326592",
   "qcacld_dev_name": "kiwi_v2",
