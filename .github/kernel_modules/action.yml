@@ -9,6 +9,10 @@ inputs:
     required: false
     type: string
     default: O2  # Choices: O2 or O3
+  lto:
+    required: false
+    type: string
+    default: Thin  # Choices: Thin or Full
   clang_version:
     required: false
     type: string
@@ -277,6 +281,37 @@ runs:
         sed -i 's/$(CONFIG_RTW88)/m/g' Makefile
         sed -i '/^source "drivers\/net\/wireless\/realtek\/rtw88\/Kconfig"$/s/.*/ /' Kconfig
 
+    - name: Add Build based configs
+      if: ${{ env.BUILD_TYPE != 'Monolithic Build' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "::group::Applying build based configs..."
+        cd "$MSM"
+
+        if [ "${{ inputs.lto }}" = "Thin" ]; then
+          ./scripts/config --file arch/arm64/configs/gki_defconfig \
+            --enable CONFIG_LTO_CLANG_THIN \
+            --enable CONFIG_LTO_CLANG
+        else
+          ./scripts/config --file arch/arm64/configs/gki_defconfig \
+            --enable CONFIG_LTO_CLANG_FULL \
+            --enable CONFIG_LTO_CLANG
+        fi
+
+        # Optimize level config and flags
+        if [ "${{ inputs.optimize_level }}" = "O3" ]; then
+          ./scripts/config --file arch/arm64/configs/gki_defconfig \
+            --disable CC_OPTIMIZE_FOR_PERFORMANCE \
+            --enable CC_OPTIMIZE_FOR_PERFORMANCE_O3
+        else
+          ./scripts/config --file arch/arm64/configs/gki_defconfig \
+           --enable CC_OPTIMIZE_FOR_PERFORMANCE \
+           --disable CC_OPTIMIZE_FOR_PERFORMANCE_O3
+        fi
+        echo "Build configs applied"
+        echo "::endgroup::"
+
     - name: Build Kernel Modules and Dtbs
       shell: bash
       run: |
@@ -370,13 +405,6 @@ runs:
         fi
 
         make "${MAKE_FLAGS[@]}" O="$OUT" "${CONFIGS[@]}"
-
-        # Thin LTO
-        ./scripts/config --file "$OUT/.config" \
-            --enable CONFIG_LTO_CLANG_THIN \
-            --enable CONFIG_LTO_CLANG \
-            --enable CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE \
-            --disable CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE_O3
 
         SECONDS=0
 
