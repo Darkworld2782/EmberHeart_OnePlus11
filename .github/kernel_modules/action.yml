@@ -483,6 +483,8 @@ runs:
             fi
         done
 
+        find "${INSTALL_MOD_PATH}" -name "${QCACLD_DEV_NAME}.ko" -execdir mv -i -- "{}" "qca_cld3_${QCACLD_DEV_NAME}.ko" \;
+
         echo "duration_qcom_ext=$SECONDS" >> "$GITHUB_ENV"
 
         echo "Compiling vendor devicetree overlays"
